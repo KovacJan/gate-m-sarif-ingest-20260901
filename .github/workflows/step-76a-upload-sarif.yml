@@ -1,0 +1,25 @@
+name: step-76a-upload-sarif
+# Paste this file into KovacJan/gate-m-sarif-ingest-20260901 as
+# .github/workflows/step-76a-upload-sarif.yml
+# Do not add it to the apiHeron repository.
+on:
+  workflow_dispatch:
+    inputs:
+      sarif_file:
+        description: Path to the SARIF file in this repository (for example F2-control-fully-located.sarif)
+        required: true
+        type: string
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938
+        with:
+          sarif_file: ${{ inputs.sarif_file }}
+          wait-for-processing: true
