@@ -1,0 +1,44 @@
+{
+  "$schema": "https://schemastore.azurewebsites.net/schemas/json/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ApiHeron",
+          "version": "0.0.0",
+          "rules": [
+            {
+              "id": "apiheron/graphql/introspection-open",
+              "name": "GraphqlIntrospectionOpen",
+              "shortDescription": { "text": "GraphQL introspection enabled" },
+              "fullDescription": { "text": "GraphQL introspection enabled" }
+            },
+            {
+              "id": "apiheron/graphql/alias-bombing",
+              "name": "GraphqlAliasBombing",
+              "shortDescription": { "text": "GraphQL alias bombing" },
+              "fullDescription": { "text": "GraphQL alias bombing" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "apiheron/graphql/introspection-open",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": { "text": "step-76a F2 control result A" },
+          "locations": []
+        },
+        {
+          "ruleId": "apiheron/graphql/alias-bombing",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": { "text": "step-76a F2 control result B" },
+          "locations": []
+        }
+      ]
+    }
+  ]
+}
