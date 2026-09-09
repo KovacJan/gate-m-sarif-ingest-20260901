@@ -40,6 +40,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Windows self-hosted runners default `run:` to PowerShell. Every `run:`
+# step in this file is POSIX (`test -f`, `&&`). Set bash for the whole
+# workflow so a later bash-syntax line cannot fail the same way mid-run.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   prove-action:
     if: github.event_name == 'workflow_dispatch'
