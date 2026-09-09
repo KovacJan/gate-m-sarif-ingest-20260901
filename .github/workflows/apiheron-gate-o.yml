@@ -1,0 +1,85 @@
+# Paste this file into KovacJan/gate-m-sarif-ingest-20260901 as
+# .github/workflows/apiheron-gate-o.yml
+# Do not add it to the apiHeron repository.
+#
+# Pinning (resolved 2026-09-09):
+#   actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+#     GET https://api.github.com/repos/actions/checkout/commits/v7.0.1
+#     (latest release tag v7.0.1)
+#   KovacJan/apiHeron@d5fce271369e9b3023f4a16632a407f7ba1a45cc
+#     checked out into ./apiheron; the composite Action is
+#     ./apiheron/actions/scan (Step 78). A private personal repository is
+#     not resolvable via uses: owner/repo/path@sha from another private
+#     repository, so this workflow does not use that form.
+#   github/codeql-action/upload-sarif is used inside the composite Action,
+#     already pinned there to cdf488f595d80d6e07e03d4674febd5ab45fa938
+#     (v4.37.9; confirmed 2026-09-09 via
+#     GET https://api.github.com/repos/github/codeql-action/commits/v4.37.9)
+#
+# Set repository secrets/variables before the first pull request:
+#   secrets.APIHERON_API_KEY          Clerk user API key (ak_…); never commit
+#   secrets.APIHERON_REPO_READ_TOKEN  token with read access to KovacJan/apiHeron
+#                                     (fine-grained: Contents Read on that repo;
+#                                     classic: repo). Revoke at teardown with
+#                                     the ApiHeron key. Never commit.
+#   vars.APIHERON_API_BASE_URL        http://127.0.0.1:8080
+#   vars.APIHERON_TARGET_BASE_URL     origin of the scan target
+#   vars.APIHERON_SPEC_PATH            path of the spec committed in this repo
+#
+# The job must run on a self-hosted runner on the machine that hosts the
+# ApiHeron stack. The repository must be private: a self-hosted runner on a
+# public repository executes code from any fork's pull request.
+#
+# Preflight: Run workflow_dispatch (prove-action) before any scenario and
+# capture that job log. It must show the checkout of KovacJan/apiHeron and
+# that apiheron/actions/scan/action.yml is present.
+
+name: ApiHeron Gate O
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  prove-action:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: self-hosted
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout apiHeron Action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: KovacJan/apiHeron
+          ref: d5fce271369e9b3023f4a16632a407f7ba1a45cc
+          path: apiheron
+          token: ${{ secrets.APIHERON_REPO_READ_TOKEN }}
+      - name: Prove action.yml is present
+        run: test -f apiheron/actions/scan/action.yml && echo 'action.yml present at apiheron/actions/scan/action.yml'
+
+  apiheron:
+    if: github.event_name == 'pull_request'
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Checkout apiHeron Action
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: KovacJan/apiHeron
+          ref: d5fce271369e9b3023f4a16632a407f7ba1a45cc
+          path: apiheron
+          token: ${{ secrets.APIHERON_REPO_READ_TOKEN }}
+      - name: Prove action.yml is present
+        run: test -f apiheron/actions/scan/action.yml
+      - name: ApiHeron Scan
+        uses: ./apiheron/actions/scan
+        with:
+          api-key: ${{ secrets.APIHERON_API_KEY }}
+          api-base-url: ${{ vars.APIHERON_API_BASE_URL }}
+          target-base-url: ${{ vars.APIHERON_TARGET_BASE_URL }}
+          spec: ${{ vars.APIHERON_SPEC_PATH }}
